@@ -1,0 +1,31 @@
+name: OSS Compliance Scan
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Generate SBOM
+        run: |
+          mkdir -p SBOM
+          syft packages/ -o json > SBOM/sbom.json
+
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Run Vulnerability Scan
+        run: |
+          mkdir -p Vulnerability_Reports
+          grype sbom:SBOM/sbom.json -o json > Vulnerability_Reports/vuln_report.json
