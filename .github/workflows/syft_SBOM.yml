@@ -9,23 +9,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Syft
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft version
 
       - name: Generate SBOM
         run: |
           mkdir -p SBOM
-          syft packages/ -o json > SBOM/sbom.json
+          syft dir:. -o json > SBOM/sbom.json
 
       - name: Install Grype
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          grype version
 
       - name: Run Vulnerability Scan
         run: |
           mkdir -p Vulnerability_Reports
           grype sbom:SBOM/sbom.json -o json > Vulnerability_Reports/vuln_report.json
+
+      - name: Upload Scan Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: oss-compliance-reports
+          path: |
+            SBOM/sbom.json
+            Vulnerability_Reports/vuln_report.json
