@@ -5,6 +5,9 @@ on:
     branches: [ main ]
     paths:
       - 'Demo/**'
+      
+permissions:
+  contents: write
 
 jobs:
   generate-sbom:
